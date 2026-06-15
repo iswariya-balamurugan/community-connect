@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Community Resource Redistribution Platform</title>
+    
+    <!-- Google Fonts: Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet.js for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top-level critical warning for Disaster Relief Mode -->
+    <div id="disaster-banner" class="disaster-banner hidden">
+        <div class="banner-content">
+            <i class="fa-solid fa-triangle-exclamation pulse"></i>
+            <span id="disaster-banner-text">CRITICAL ALERT: Disaster Relief Mode Active. NGO cooperation requested immediately!</span>
+            <button onclick="window.router.navigate('/listings')" class="btn-banner">View Disaster Needs</button>
+        </div>
+    </div>
+
+    <!-- Global App Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area" onclick="window.router.navigate('/')">
+                <div class="logo-icon"><i class="fa-solid fa-recycle"></i></div>
+                <div class="logo-text">
+                    <h1>SmartShare</h1>
+                    <span>Community Resource Redistribution</span>
+                </div>
+            </div>
+
+            <!-- Responsive Mobile Toggle -->
+            <button class="menu-toggle" id="menu-toggle-btn" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Main Navigation -->
+            <nav class="main-nav" id="main-nav-bar">
+                <a href="/" class="nav-link active" data-route="/">Home</a>
+                <a href="/listings" class="nav-link" data-route="/listings">Marketplace</a>
+                <a href="/blood" class="nav-link" data-route="/blood">Blood Hub</a>
+                <a href="/about" class="nav-link" data-route="/about">About Us</a>
+                
+                <!-- Role Specific Dashboard links (Shown dynamically) -->
+                <a href="/dashboard" class="nav-link hidden" id="nav-dashboard" data-route="/dashboard">My Dashboard</a>
+            </nav>
+
+            <!-- User Auth Profile Menu -->
+            <div class="auth-menu">
+                <!-- Guest View -->
+                <div id="auth-guest-links" class="auth-guest-links">
+                    <button class="btn btn-secondary" onclick="window.router.navigate('/auth?tab=login')">Sign In</button>
+                    <button class="btn btn-primary" onclick="window.router.navigate('/auth?tab=register')">Join Platform</button>
+                </div>
+
+                <!-- Logged In View -->
+                <div id="auth-user-menu" class="auth-user-menu hidden">
+                    <!-- Notification Bell -->
+                    <div class="notif-bell-container" id="notif-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge hidden" id="notif-badge">0</span>
+                    </div>
+
+                    <!-- User Dropdown Details -->
+                    <div class="profile-trigger" id="profile-dropdown-btn">
+                        <div class="avatar-circle">
+                            <span id="avatar-letters">US</span>
+                        </div>
+                        <div class="profile-meta">
+                            <span id="user-display-name">Username</span>
+                            <span class="role-tag" id="user-display-role">Donor</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown hidden" id="profile-dropdown-menu">
+                        <a href="/profile" class="dropdown-item" data-route="/profile"><i class="fa-regular fa-user"></i> My Profile</a>
+                        <a href="/dashboard" class="dropdown-item" data-route="/dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                        <hr>
+                        <button class="dropdown-item text-danger" id="logout-btn"><i class="fa-solid fa-sign-out-alt"></i> Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Mounting Node for SPA Views -->
+    <main class="app-main">
+        <div id="app-root"></div>
+    </main>
+
+    <!-- Side Notification Panel / Drawer -->
+    <div class="notif-drawer" id="notif-drawer-panel">
+        <div class="drawer-header">
+            <h3><i class="fa-solid fa-bell"></i> Notifications</h3>
+            <button class="close-drawer-btn" id="close-notif-drawer-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="drawer-actions">
+            <button class="btn-text" id="mark-all-read-btn">Mark all as read</button>
+        </div>
+        <div class="drawer-content" id="notif-drawer-list">
+            <!-- Dynamic Notifications -->
+            <div class="notif-empty">No new notifications</div>
+        </div>
+    </div>
+    <div class="drawer-overlay hidden" id="drawer-overlay-bg"></div>
+
+    <!-- Screen Loading Mask -->
+    <div class="loading-mask hidden" id="global-loading-mask">
+        <div class="spinner-container">
+            <div class="eco-spinner"><i class="fa-solid fa-recycle"></i></div>
+            <p>Smart Matching resources...</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <i class="fa-solid fa-recycle text-primary"></i>
+                    <h2>SmartShare</h2>
+                </div>
+                <p>Creating sustainable waste-free neighborhoods by matching surplus resources with community needs.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Our System</h3>
+                <ul>
+                    <li><a href="/listings" data-route="/listings">Donation Marketplace</a></li>
+                    <li><a href="/blood" data-route="/blood">Blood Request Hub</a></li>
+                    <li><a href="/about" data-route="/about">Disaster Support Map</a></li>
+                    <li><a href="/about" data-route="/about">Eco Badges Program</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Impact Focus</h3>
+                <ul>
+                    <li><i class="fa-solid fa-leaf text-success"></i> Food waste reduction</li>
+                    <li><i class="fa-solid fa-truck-ramp-box text-blue"></i> Carbon-optimized routing</li>
+                    <li><i class="fa-solid fa-certificate text-warning"></i> CSR Corporation support</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Smart Community Resource Redistribution Platform. Built with sustainability principles.</p>
+        </div>
+    </footer>
+
+    <!-- App Frontend Controllers -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
